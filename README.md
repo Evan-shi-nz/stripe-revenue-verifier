@@ -5,7 +5,7 @@ Check, by yourself, that the revenue a founder publishes is real.
 The founder publishes a Stripe **restricted key that can only read their balance**. This script uses that key to read the numbers straight from Stripe, so you don't have to trust the website.
 
 ```bash
-git clone https://github.com/<owner>/stripe-revenue-verifier
+git clone https://github.com/Evan-shi-nz/stripe-revenue-verifier
 cd stripe-revenue-verifier
 node verify.mjs rk_live_xxx
 ```
