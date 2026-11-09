@@ -1,0 +1,11 @@
+{
+  "name": "stripe-revenue-verifier",
+  "version": "1.0.0",
+  "description": "Verify a founder's published Stripe revenue with a public, balance-only restricted key.",
+  "type": "module",
+  "bin": { "stripe-revenue-verifier": "verify.mjs" },
+  "files": ["verify.mjs", "revenue.mjs"],
+  "engines": { "node": ">=18" },
+  "scripts": { "test": "node test.mjs" },
+  "license": "MIT"
+}
