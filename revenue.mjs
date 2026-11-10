@@ -52,22 +52,33 @@ function bucket() {
   return { gross: 0, refunds: 0, disputes: 0, fees: 0, net: 0, payments: 0 };
 }
 
-// Aggregates amounts per currency (minor units, e.g. cents) and per UTC month.
+// Aggregates amounts per currency (minor units, e.g. cents): all time, per UTC month,
+// per UTC day for the last DAILY_DAYS days, the last 30 days and the 30 days before that.
 // Only totals leave this function: no IDs, descriptions or customer references.
+export const DAILY_DAYS = 90;
+
 export function aggregate(transactions, now = Date.now()) {
   const byCurrency = {};
   const last30 = {};
-  const cutoff = Math.floor(now / 1000) - 30 * 86400;
+  const prev30 = {};
+  const nowSec = Math.floor(now / 1000);
+  const cutoff30 = nowSec - 30 * 86400;
+  const cutoff60 = nowSec - 60 * 86400;
+  const dailyStart = startOfUtcDay(nowSec) - (DAILY_DAYS - 1) * 86400;
 
   for (const tx of transactions) {
     const cat = tx.reporting_category;
     if (!GROSS.has(cat) && !REFUND.has(cat) && !DISPUTE.has(cat) && !STRIPE_FEE.has(cat)) continue;
     const cur = tx.currency;
-    const c = (byCurrency[cur] ??= { total: bucket(), months: {} });
+    const c = (byCurrency[cur] ??= { total: bucket(), months: {}, days: emptyDays(dailyStart) });
     const month = new Date(tx.created * 1000).toISOString().slice(0, 7);
-    const m = (c.months[month] ??= bucket());
-    const l = (last30[cur] ??= bucket());
-    const targets = tx.created >= cutoff ? [c.total, m, l] : [c.total, m];
+    const targets = [c.total, (c.months[month] ??= bucket())];
+    if (tx.created >= dailyStart) {
+      const day = new Date(tx.created * 1000).toISOString().slice(0, 10);
+      if (c.days[day]) targets.push(c.days[day]);
+    }
+    if (tx.created >= cutoff30) targets.push((last30[cur] ??= bucket()));
+    else if (tx.created >= cutoff60) targets.push((prev30[cur] ??= bucket()));
 
     for (const t of targets) {
       if (GROSS.has(cat)) {
@@ -86,14 +97,29 @@ export function aggregate(transactions, now = Date.now()) {
     }
   }
 
-  for (const groups of [Object.values(byCurrency).flatMap((c) => [c.total, ...Object.values(c.months)]), Object.values(last30)]) {
-    for (const t of groups) t.net = t.gross + t.refunds + t.disputes - t.fees;
-  }
+  const all = [
+    ...Object.values(byCurrency).flatMap((c) => [c.total, ...Object.values(c.months), ...Object.values(c.days)]),
+    ...Object.values(last30),
+    ...Object.values(prev30),
+  ];
+  for (const t of all) t.net = t.gross + t.refunds + t.disputes - t.fees;
 
   for (const c of Object.values(byCurrency)) {
     c.months = Object.fromEntries(Object.entries(c.months).sort(([a], [b]) => a.localeCompare(b)));
   }
-  return { currencies: byCurrency, last30Days: last30 };
+  return { currencies: byCurrency, last30Days: last30, previous30Days: prev30 };
+}
+
+function startOfUtcDay(sec) {
+  return sec - (sec % 86400);
+}
+
+function emptyDays(startSec) {
+  const days = {};
+  for (let i = 0; i < DAILY_DAYS; i++) {
+    days[new Date((startSec + i * 86400) * 1000).toISOString().slice(0, 10)] = bucket();
+  }
+  return days;
 }
 
 export function formatMoney(minor, currency) {

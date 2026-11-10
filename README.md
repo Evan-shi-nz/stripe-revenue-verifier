@@ -34,6 +34,8 @@ No dependencies, Node 18+. The script makes GET requests only. Read `verify.mjs`
 
 Payouts, transfers and top-ups are money movement, not revenue, and are ignored.
 
+It also prints gross revenue for the last 30 days and the 30 days before, the same "change" the website shows.
+
 ## For founders: create the key
 
 1. Stripe Dashboard → **Developers → API keys → Create restricted key**.

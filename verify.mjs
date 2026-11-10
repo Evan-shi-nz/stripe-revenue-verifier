@@ -71,6 +71,10 @@ if (asJson) {
     log(`     disputes  ${formatMoney(t.disputes, cur)}`);
     log(`     fees     -${formatMoney(t.fees, cur)}`);
     log(`     net       ${formatMoney(t.net, cur)}`);
+    const l30 = result.last30Days[cur]?.gross ?? 0;
+    const p30 = result.previous30Days[cur]?.gross ?? 0;
+    const growth = p30 ? `${(((l30 - p30) / p30) * 100).toFixed(1)}%` : "n/a";
+    log(`   last 30 days gross ${formatMoney(l30, cur)}  (previous 30 days ${formatMoney(p30, cur)}, change ${growth})`);
     log(`   by month (gross / net)`);
     for (const [month, m] of Object.entries(c.months)) {
       if (m.gross || m.refunds) log(`     ${month}  ${formatMoney(m.gross, cur).padStart(14)}  ${formatMoney(m.net, cur).padStart(14)}`);

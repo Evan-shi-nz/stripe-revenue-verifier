@@ -32,4 +32,14 @@ assert.equal(r.last30Days.usd.gross, 2000);
 assert.equal(r.last30Days.usd.refunds, 0);
 assert.equal(r.currencies.nzd.total.gross, 50000);
 assert.equal(Object.keys(r.currencies.usd.months).length, 2);
+// previous 30 days window (30-60 days ago): the $10 payment and its refund
+assert.equal(r.previous30Days.usd.gross, 1000);
+assert.equal(r.previous30Days.usd.refunds, -1000);
+// daily buckets: 90 days, oldest first, recent payment lands on its UTC day
+const days = Object.keys(r.currencies.usd.days);
+assert.equal(days.length, 90);
+assert.equal(days[89], "2026-11-09");
+assert.equal(r.currencies.usd.days["2026-11-07"].gross, 2000);
+assert.equal(r.currencies.usd.days["2026-11-08"].disputes, -2000);
+assert.equal(Object.values(r.currencies.usd.days).reduce((a, d) => a + d.gross, 0), 3000);
 console.log("ok - aggregation");
