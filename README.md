@@ -13,8 +13,10 @@ node verify.mjs rk_live_xxx
 Compare with what the website shows:
 
 ```bash
-node verify.mjs rk_live_xxx --compare https://<site>/api/revenue
+node verify.mjs rk_live_xxx --compare https://<site>/api/revenue?project=1
 ```
+
+A site with several projects (one Stripe account each) shows a key per project; use the matching `?project=` number.
 
 No dependencies, Node 18+. The script makes GET requests only. Read `verify.mjs` and `revenue.mjs` before you run it; together they are about 200 lines.
 
