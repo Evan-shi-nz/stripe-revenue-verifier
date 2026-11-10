@@ -55,7 +55,7 @@ function bucket() {
 // Aggregates amounts per currency (minor units, e.g. cents): all time, per UTC month,
 // per UTC day for the last DAILY_DAYS days, the last 30 days and the 30 days before that.
 // Only totals leave this function: no IDs, descriptions or customer references.
-export const DAILY_DAYS = 90;
+export const DAILY_DAYS = 180; // enough to compare the last 90 days with the 90 days before
 
 export function aggregate(transactions, now = Date.now()) {
   const byCurrency = {};
